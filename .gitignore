@@ -5,5 +5,8 @@
 *.war
 *.ear
 
+#Java Project
+.project
+
 #Folder Cruft
 .DS_Store
