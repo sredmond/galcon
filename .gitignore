@@ -4,3 +4,6 @@
 *.jar
 *.war
 *.ear
+
+#Folder Cruft
+.DS_Store
