@@ -1,3 +1,4 @@
+bin
 *.class
 
 # Package Files #
@@ -7,6 +8,7 @@
 
 #Java Project
 .project
+.classpath
 
 #Folder Cruft
 .DS_Store

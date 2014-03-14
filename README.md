@@ -28,7 +28,7 @@ Players start with 1 large "home planet" and send off ships to conquer other pla
 * ArrayList<FleetInfo> getEnemyFleetInfo()
 * ArrayList<PlanetInfo> getMyPlanetInfo()
 * ArrayList<FleetInfo> getMyFleetInfo()
-* ArrayList<PlanetInfo> getNeutralPlanets()
+* ArrayList<PlanetInfo> getNeutralPlanetsInfo()
 * void sendFleet(PlanetInfo origin, int numUnits, PlanetInfo target)
 * void changeFleetTarget(FleetInfo f, PlanetInfo target)
 
