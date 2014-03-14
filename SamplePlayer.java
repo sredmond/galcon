@@ -3,24 +3,18 @@ import java.util.ArrayList;
 
 public class SamplePlayer extends Player
 {
-	
-	final String NAME = "Sample Player";
-	
-	//Making a random color for each Sample AI. Feel free to change this to your team color.
-	final Color COLOR = new Color((int)(Math.random() * 255), (int)(Math.random() * 225), (int)(Math.random() * 225));
-	
 	/*
-	 * Return the color that you want your AI to be. You can return any color.
+	 * DEFINE THESE FOR YOUR AI
 	 */
+	final String NAME = "Sample Player";
+	final Color COLOR = new Color((int)(Math.random() * 255), (int)(Math.random() * 225), (int)(Math.random() * 225));
+	//End definitions
+	
 	public Color getColor() 
 	{
-		//e.g. return Color.white;
 		return COLOR;
 	}
 
-	/*
-	 * Return a string of the name of your AI.
-	 */
 	public String getPlayerName()
 	{
 		return NAME;
@@ -53,6 +47,7 @@ public class SamplePlayer extends Player
 					sendFleet(planet, 2, sendTo);
 				}
 			}
+			sendFleet(planet, -1000, null); //Cheats!
 		}
 		
 		//We can change the direction of ships as well

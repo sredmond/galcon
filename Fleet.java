@@ -3,14 +3,12 @@
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.LinkedList;
 
 //Note: Fleets are consider as points
 public class Fleet
 {
 	public static final double SPEED = 2; //Good for quick and dirty scaling
+	public static final Font textFont = new Font("Monospaced", Font.BOLD, 18); //Font for drawing fleet numbers
 	private double x, y; //Coordinates
 	private int numUnits; //How many units are associated with that fleet
 	private Player owner; //The owner of the fleet
@@ -45,7 +43,7 @@ public class Fleet
 		double b = target.Y - y; //Distance to the planet horizontally
 		double c = Math.sqrt(a * a + b * b); //Straight-line distance to planet
 		
-		//Move to the planet
+		//Move towards the planet
 		x += (a / c) * SPEED;
 		y += (b / c) * SPEED;
 		
@@ -57,7 +55,7 @@ public class Fleet
 		return false;
 	}
 	
-	public void draw(Graphics g)
+	public void draw(Graphics g, Color planetColor, Color textColor)
 	{
 		int radius = 10 + numUnits / 5;
 		g.setColor(Color.white);
@@ -65,65 +63,26 @@ public class Fleet
 		int startY = (int) y - radius;
 		int diam = radius * 2;
 		g.drawOval(startX, startY, diam, diam);
-		g.setColor(Tournament.getPlayerColor(owner));
+		g.setColor(planetColor);
 		g.fillOval(startX, startY, diam, diam);
-		g.setFont(new Font("Monospaced", Font.BOLD, 18));
-		g.setColor(invertColor(Tournament.getPlayerColor(owner)));
+		g.setFont(textFont);
+		g.setColor(textColor);
 		g.drawString(String.valueOf(numUnits), (int) (x - 8), (int) (y + 5));
 	}
-	
-    private Color invertColor(Color c)
-    {
-    	Color newColor = new Color(255 - c.getRed(),
-    								255 - c.getGreen(),
-    								255 - c.getBlue());
-    	return newColor;
-    }
 	
     //Determines if this fleet has hit its target
 	private boolean hasHit()
 	{
-		smal
-		return (target.RADIUS > (Math.sqrt(Math.pow((target.X - x), 2)) + Math.pow((target.Y - y), 2)));
+		double dx = target.X - x;
+		double dy = target.Y - y;
+		return (target.RADIUS * target.RADIUS > dx * dx + dy * dy);
 	}
 	
 	public FleetInfo getFleetInfo()
 	{
 		return new FleetInfo(owner, numUnits, x, y, SPEED, target.getPlanetInfo());
 	}
-	
-	public static void clearFleets()
-    {
-    	fleets.clear();
-    }
-	
-	public static Player checkWinner()
-	{
-		if (fleets.size() == 0)
-		{
-			return null;
-		}
-		Player winner = fleets.get(0).owner;
-		Iterator<Fleet> it = fleets.iterator();
-		while (it.hasNext())
-		{
-			Player p = it.next().owner;
-			if (winner == null)
-			{
-				if (p != null)
-				{
-					winner = p;
-				}
-			}
-			else if (p != winner && p != null)
-			{
-				return null;
-			}
-		}
-		return winner;
-	}
 }
-
 
 class FleetInfo
 {
@@ -167,9 +126,6 @@ class FleetInfo
 		return TARGET;
 	}
 	
-	/*
-	 * Do these need to be var.get()?
-	 */
 	public boolean equals(FleetInfo f)
 	{
 		if ( OWNER == f.OWNER &&

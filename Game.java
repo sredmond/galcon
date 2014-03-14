@@ -7,8 +7,6 @@ import java.awt.event.MouseMotionListener;
 import java.util.*;
 import javax.swing.*;
 import javax.swing.Timer;
-import java.awt.*;
-import javax.swing.*;
 import java.awt.event.*;
 import java.awt.image.BufferStrategy;
 import java.awt.image.ImageObserver;
@@ -33,7 +31,7 @@ public class Game extends JFrame implements ActionListener
 	//Window setup data	
 	public static final int TOP_BAR_HEIGHT = 22; //24 for windows, 22 for mac
 	public static final int WIN_WIDTH = Toolkit.getDefaultToolkit().getScreenSize().width;
-	public static final int WIN_HEIGHT = Toolkit.getDefaultToolkit().getScreenSize().height;
+	public static final int WIN_HEIGHT = Toolkit.getDefaultToolkit().getScreenSize().height - TOP_BAR_HEIGHT;
 
 	//double Buffering stuff
 	private static Graphics bufferGraphics;
@@ -46,7 +44,7 @@ public class Game extends JFrame implements ActionListener
 	private static final Image STAR_BACKGROUND = new ImageIcon("SpacePic.jpg").getImage();
 
 	private static Set<Fleet> fleets = new HashSet<Fleet>();
-	public static Set<Planet> planets = new HashSet<Planet>();
+	private static Set<Planet> planets = new HashSet<Planet>();
 
 	private static final int NUM_PLANETS = 16;
 
@@ -61,15 +59,14 @@ public class Game extends JFrame implements ActionListener
 
 	private Game()
 	{
+		generateNewMap();	
+		//Set up window
 		setName("Galcon AI Challenge");
-		//set up window
 		setSize(WIN_WIDTH, WIN_HEIGHT + TOP_BAR_HEIGHT);
 		setDefaultCloseOperation(EXIT_ON_CLOSE);
 		setBackground(Color.GRAY);
 		setResizable(false);
-		setVisible(true);	
-		generateNewMap();		
-
+		setVisible(true);		
 
 		Player[] players = tournament.getPlayers();
 		for (int i=0; i<players.length; i++)
@@ -90,6 +87,8 @@ public class Game extends JFrame implements ActionListener
 	 */
 	public void paint(Graphics g)
 	{
+		g.translate(0, TOP_BAR_HEIGHT);
+		
 		if (bufferImage == null)
 		{
 			bufferImage = createImage(this.getSize().width,this.getSize().height);
@@ -153,15 +152,15 @@ public class Game extends JFrame implements ActionListener
 	}
 
 	//Draw all planets
-	public static void drawAllPlanets(Graphics g)
+	public void drawAllPlanets(Graphics g)
 	{
-		for(int i = 0; i < planets.size(); i++)
+		for(Planet p: planets)
 		{
-			planets.get(i).draw(g);
+			p.draw(g);
 		}
 	}
 
-	public static void drawAllFleets(Graphics g)
+	public void drawAllFleets(Graphics g)
 	{
 		for(Fleet f: fleets)
 		{
@@ -198,7 +197,25 @@ public class Game extends JFrame implements ActionListener
 		mc.repaint();
 	}
 
-	private void generateNewMap(){
+	//Checks if a planet-to-be (specified by (x,y) coordinates and radius) is overlapping any existing planet.
+	public static boolean isPlanetOverlapping(int x, int y, int radius)
+	{
+		for(Planet p: planets)
+		{
+			int dx = p.getX() - x;
+			int dy = p.getY() - y;
+			int minSep = p.getRadius() + radius + 10; //Must be at least ten units apart
+			
+			if(dx * dx + dy * dy <= minSep * minSep) 
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	private void generateNewMap()
+	{
 		Player players[] = manager.getNextMatch();
 		Player p1 = players[0];
 		Player p2 = players[1];
@@ -213,7 +230,6 @@ public class Game extends JFrame implements ActionListener
 			planets.add(new Planet());
 		}
 	}
-	
 	public static void clearFleets()
 	{
 		fleets.clear();
@@ -244,5 +260,52 @@ public class Game extends JFrame implements ActionListener
 		{
 			p.update();
 		}
+	}
+	public static Set<Fleet> getAllFleets()
+	{
+		return fleets;
+	}
+	public static Set<Planet> getAllPlanets()
+	{
+		return planets;
+	}
+	private Color invertColor(Color c)
+    {
+		return new Color(255 - c.getRed(), 255 - c.getGreen(), 255 - c.getBlue());
+    }
+	//Generate a value of x between rad and WIN_WIDTH - rad
+	public static int genX(int rad)
+	{
+		return (int) (Math.random() * (WIN_WIDTH - rad * 2) + rad);
+	}
+	//Generate a value of y between rad and WIN_HEIGHT - rad
+	public static int genY(int rad)
+	{
+		return (int) (Math.random() * (WIN_HEIGHT - rad * 2) + rad);
+	}
+	//Returns the winning player, if there is one, else null
+	//Winning is defined to be: has at least one planet left
+	public static Player winner() //TODO
+	{
+		Player winner = planets.get(0).getOwner();
+		for(int i = 1; i < planets.size(); i++)
+		{
+			if(winner == null)
+			{
+				if (planets.get(i).getOwner() != null)
+				{
+					winner = planets.get(i).getOwner();
+				}
+			}
+			else if(planets.get(i).getOwner() != winner && planets.get(i).getOwner() != null)
+			{
+				return null;
+			}
+		}
+		if (winner != null && (Fleet.getAllFleets().size() == 0 || winner == Fleet.checkWinner()))
+		{
+			return winner;
+		}
+		return null;
 	}
 }

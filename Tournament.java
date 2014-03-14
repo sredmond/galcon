@@ -7,7 +7,7 @@ import java.util.Arrays;
  * Changes fleet data type to hashset from linkedlist
  * fixed arithmetic errors (math.sqrt)
  * sped up int to string conversion
- *
+ * Fixes game-breaking cheats (send negative numbers to sendFleet)
  */
 
 public class Tournament 

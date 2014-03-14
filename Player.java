@@ -1,7 +1,7 @@
 //3/13/14
 import java.awt.Color;
-import java.util.ArrayList;
-import java.util.LinkedList;
+import java.util.HashSet;
+import java.util.Set;
 
 /*
  * The abstract class that represents an AI.
@@ -12,32 +12,30 @@ public abstract class Player extends Thread
 	public abstract void makeMove(); //The AI's main brain
 	public abstract String getPlayerName(); //Get the AI's name
 	
-	public ArrayList<PlanetInfo> getAllPlanetInfo()
+	public Set<PlanetInfo> getAllPlanetInfo()
 	{
-		ArrayList<Planet> planets = Planet.getAllPlanets();
-		ArrayList<PlanetInfo> info = new ArrayList<PlanetInfo>();
-		for (Planet p : planets)
+		Set<PlanetInfo> info = new HashSet<PlanetInfo>();
+		for (Planet p: Game.getAllPlanets())
 		{
 			info.add(p.getPlanetInfo());
 		}
 		return info;
 	}
 	
-	public ArrayList<FleetInfo>getAllFleetInfo()
+	public Set<FleetInfo> getAllFleetInfo()
 	{
-		LinkedList<Fleet> fleets = Fleet.getAllFleets();
-		ArrayList<FleetInfo> info = new ArrayList<FleetInfo>();
-		for(Fleet f : fleets)
+		Set<FleetInfo> info = new HashSet<FleetInfo>();
+		for(Fleet f: Game.getAllFleets())
 		{
 			info.add(f.getFleetInfo());
 		}
 		return info;
 	}
 	
-	public ArrayList<PlanetInfo> getEnemyPlanetInfo()
+	public Set<PlanetInfo> getEnemyPlanetInfo()
 	{
-		ArrayList<PlanetInfo> enemyInfo = new ArrayList<PlanetInfo>();
-		for (Planet p : Planet.getAllPlanets())
+		Set<PlanetInfo> enemyInfo = new HashSet<PlanetInfo>();
+		for (Planet p: Game.getAllPlanets())
 		{
 			if (p.getOwner() != null && p.getOwner() != this)
 			{
@@ -47,10 +45,10 @@ public abstract class Player extends Thread
 		return enemyInfo;
 	}
 	
-	public ArrayList<FleetInfo> getEnemyFleetInfo()
+	public Set<FleetInfo> getEnemyFleetInfo()
 	{
-		ArrayList<FleetInfo> enemyFleets = new ArrayList<FleetInfo>();
-		for (Fleet f : Fleet.getAllFleets())
+		Set<FleetInfo> enemyFleets = new HashSet<FleetInfo>();
+		for (Fleet f: Game.getAllFleets())
 		{
 			if (f.getOwner() != this)
 			{
@@ -60,10 +58,10 @@ public abstract class Player extends Thread
 		return enemyFleets;
 	}
 	
-	public ArrayList<PlanetInfo> getMyPlanetInfo()
+	public Set<PlanetInfo> getMyPlanetInfo()
 	{
-		ArrayList<PlanetInfo> myInfo = new ArrayList<PlanetInfo>();
-		for (Planet p : Planet.getAllPlanets())
+		Set<PlanetInfo> myInfo = new HashSet<PlanetInfo>();
+		for (Planet p: Game.getAllPlanets())
 		{
 			if (p.getOwner() == this)
 			{
@@ -73,10 +71,10 @@ public abstract class Player extends Thread
 		return myInfo;
 	}
 	
-	public ArrayList<FleetInfo> getMyFleetInfo()
+	public Set<FleetInfo> getMyFleetInfo()
 	{
-		ArrayList<FleetInfo> myFleets = new ArrayList<FleetInfo>();
-		for (Fleet f : Fleet.getAllFleets())
+		Set<FleetInfo> myFleets = new HashSet<FleetInfo>();
+		for (Fleet f : Game.getAllFleets())
 		{
 			if (f.getOwner() == this)
 			{
@@ -86,10 +84,10 @@ public abstract class Player extends Thread
 		return myFleets;
 	}
 	
-	public ArrayList<PlanetInfo> getNeutralPlanetInfo()
+	public Set<PlanetInfo> getNeutralPlanetInfo()
 	{
-		ArrayList<PlanetInfo> myInfo = new ArrayList<PlanetInfo>();
-		for (Planet p : Planet.getAllPlanets())
+		Set<PlanetInfo> myInfo = new HashSet<PlanetInfo>();
+		for (Planet p: Game.getAllPlanets())
 		{
 			if (p.getOwner() == null)
 			{
@@ -99,53 +97,41 @@ public abstract class Player extends Thread
 		return myInfo;
 	}
 	
+	//Convenience functions to send fleets or change fleet target based on info
 	public void sendFleet(PlanetInfo origin, int numUnits, PlanetInfo target)
 	{
 		if (origin.getOwner() == this)
-			getPlanet(origin).sendFleet(numUnits, getPlanet(target));
+			getPlanetFromInfo(origin).sendFleet(numUnits, getPlanetFromInfo(target));
 	}
 	
 	public void changeFleetTarget(FleetInfo f, PlanetInfo target)
 	{
 		if (f.getOwner() == this)
-			getFleet(f).setDestination(getPlanet(target));
+			getFleetFromInfo(f).setDestination(getPlanetFromInfo(target));
 	}
 	
-	
-	
-	private Planet getPlanet(PlanetInfo pInfo)
+	//Subclasses can't use these
+	private Planet getPlanetFromInfo(PlanetInfo pInfo)
 	{
-		int index = 0;
-		while (true)
+		for (Planet p: Game.getAllPlanets())
 		{
-			if (index == Planet.getAllPlanets().size())
-			{
-				return null;
-			}
-			Planet p = Planet.getAllPlanets().get(index);
 			if (p.getPlanetInfo().equals(pInfo))
 			{
 				return p;
 			}
-			index++;
 		}
+		return null;
 	}
 	
-	private Fleet getFleet(FleetInfo fInfo)
+	private Fleet getFleetFromInfo(FleetInfo fInfo)
 	{
-		int index = 0;
-		while (true)
+		for (Fleet f: Game.getAllFleets())
 		{
-			if (index == Fleet.getAllFleets().size())
-			{
-				return null;
-			}
-			Fleet f = Fleet.getAllFleets().get(index);
 			if (f.getFleetInfo().equals(fInfo))
 			{
 				return f;
 			}
-			index++;
 		}
+		return null;
 	}
 }

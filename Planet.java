@@ -34,21 +34,22 @@ public class Planet
 		numUnits = 100;
 		RADIUS = MAX_SIZE;
 		PRODUCTION_TIME = MIN_PRODUCE_TIME;
-		//    	setupImage();
-		int x = 0, y = 0;
-		boolean overlapping = true;
-		while (overlapping)
+		//    	setupImage();		
+		int x = Game.genX(RADIUS);
+		int y = Game.genY(RADIUS);
+		while (Game.isPlanetOverlapping(x, y, RADIUS))
 		{
-			x = (int) (Math.random() * (MainClass.WIN_WIDTH - RADIUS * 2) + RADIUS);
-			y = (int) (Math.random() * (MainClass.WIN_HEIGHT - RADIUS * 2 - MainClass.TOP_BAR_HEIGHT)
-					+ RADIUS + MainClass.TOP_BAR_HEIGHT);
+			x = Game.genX(RADIUS);
+			y = Game.genY(RADIUS);
 
-			overlapping = checkOtherPlanets(x, y);
 		}
+		
+		//Assign our final variables
 		X = x;
 		Y = y;
 	}
 
+	//Construct a neutrally owned planet with a random starting size.
 	public Planet()
 	{
 		owner = null;
@@ -56,36 +57,17 @@ public class Planet
 		RADIUS = (int) (Math.random() * (MAX_SIZE - MIN_SIZE) + MIN_SIZE);
 		PRODUCTION_TIME = (int) ((1 - ((double) RADIUS - MIN_SIZE) / (MAX_SIZE - MIN_SIZE)) * 
 				(MAX_PRODUCE_TIME - MIN_PRODUCE_TIME) + MIN_PRODUCE_TIME); //Calculate the time between productions
-		setupImage();
-		int x = 0, y = 0;
-		boolean overlapping = true;
-		while (overlapping)
+		//		setupImage();
+		int x = Game.genX(RADIUS);
+		int y = Game.genY(RADIUS);
+		
+		while (Game.isPlanetOverlapping(x, y, RADIUS))
 		{
-			x = (int) (Math.random() * (MainClass.WIN_WIDTH - RADIUS * 2) + RADIUS);
-			y = (int) (Math.random() * (MainClass.WIN_HEIGHT - RADIUS * 2) + MainClass.TOP_BAR_HEIGHT
-					+ RADIUS);
-
-			overlapping = checkOtherPlanets(x, y);
+			x = Game.genX(RADIUS);
+			y = Game.genY(RADIUS);
 		}
 		X = x;
 		Y = y;
-	}
-
-	private boolean checkOtherPlanets(int x, int y)
-	{
-		for(int i = 0; i < planets.size(); i++)
-		{
-			int pX = planets.get(i).getX();
-			int pY = planets.get(i).getY();
-			int pR = planets.get(i).getRadius();
-
-			double distance = Math.sqrt((pX - x) * (pX - x) + (pY - y) * (pY - y));
-			if(distance <= RADIUS + pR + 10)
-			{
-				return true;
-			}
-		}
-		return false;
 	}
 
 	//Get this planet's information
@@ -99,30 +81,24 @@ public class Planet
 		return RADIUS;
 	}
 
-	private void draw(Graphics g, Color bodyColor, Color textColor)
+	private void draw(Graphics g, Color bodyColor, Color textColor, boolean drawImage)
 	{
-		g.drawImage(PLANET_IMAGE, X-RADIUS, Y-RADIUS, RADIUS*2, RADIUS*2, null);
-		g.setColor(bodyColor);
-		Color c = Tournament.getPlayerColor(owner);
-
-		g.setColor(new Color(c.getRed(),
-				c.getGreen(),
-				c.getBlue(),
+		if (drawImage)
+		{
+			g.drawImage(PLANET_IMAGE, X-RADIUS, Y-RADIUS, RADIUS*2, RADIUS*2, null);
+		}
+		
+		//Change transparency depending on number of units
+		g.setColor(new Color(bodyColor.getRed(),
+				bodyColor.getGreen(),
+				bodyColor.getBlue(),
 				Math.min(50 + numUnits, 255)));
 		g.fillOval(X - RADIUS, Y - RADIUS, RADIUS * 2, RADIUS * 2);
 
-		g.setColor(invertColor(MainClass.getPlayerColor(owner)));
+		g.setColor(textColor);
 		Font font = new Font("Monospaced", Font.BOLD, (int) (0.7 * MIN_SIZE * 2));
-		g.setFont (font);
+		g.setFont(font);
 		g.drawString("" + numUnits, (int)(X - 0.7 * MIN_SIZE), (int)(Y + 0.7 * MIN_SIZE));
-	}
-
-	private Color invertColor(Color c)
-	{
-		Color newColor = new Color(255 - c.getRed(),
-				255 - c.getGreen(),
-				255 - c.getBlue());
-		return newColor;
 	}
 
 	public void update()
@@ -133,39 +109,10 @@ public class Planet
 		}
 		updateCnt++;
 	}
-
-	public static ArrayList <Planet> getAllPlanets()
-	{
-		return planets;
-	}
-
+	
 	public Player getOwner()
 	{
 		return owner;
-	}
-
-	public static Player isGameOver()
-	{
-		Player winner = planets.get(0).getOwner();
-		for(int i = 1; i < planets.size(); i++)
-		{
-			if(winner == null)
-			{
-				if (planets.get(i).getOwner() != null)
-				{
-					winner = planets.get(i).getOwner();
-				}
-			}
-			else if(planets.get(i).getOwner() != winner && planets.get(i).getOwner() != null)
-			{
-				return null;
-			}
-		}
-		if (winner != null && (Fleet.getAllFleets().size() == 0 || winner == Fleet.checkWinner()))
-		{
-			return winner;
-		}
-		return null;
 	}
 
 	public void invade(Player player, int numUnitsIn)
@@ -179,8 +126,8 @@ public class Planet
 			numUnits = numUnits - numUnitsIn;
 			if(numUnits < 0)
 			{
-				owner = player;
-				numUnits = numUnits * -1;
+				owner = player; //Pass ownership of the planet to the invading player
+				numUnits = -numUnits; //Make the number of units positive again
 			}
 		}
 	}
@@ -195,22 +142,22 @@ public class Planet
 		return Y;
 	}
 
+	//Send a fleet from this planet to some other planet
 	public void sendFleet(int numSent, Planet target)
 	{
-		if (target == this)
+		if (target != this)
 		{
-			return;
-		}
-		if(numSent > numUnits)
-		{
-			numSent = numUnits;
-		}
+			if(numSent > numUnits)
+			{
+				numSent = numUnits;
+			}
 
-		if (numSent > 0)
-		{
-			new Fleet(X, Y, numSent, owner, target);
+			if (numSent > 0)
+			{
+				new Fleet(X, Y, numSent, owner, target);
+			}
+			numUnits -= numSent;
 		}
-		numUnits -= numSent;
 	}
 }
 
