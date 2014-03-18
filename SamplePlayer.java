@@ -1,5 +1,5 @@
 import java.awt.Color;
-import java.util.ArrayList;
+import java.util.Set;
 
 public class SamplePlayer extends Player
 {
@@ -27,46 +27,78 @@ public class SamplePlayer extends Player
 	 */
 	public void makeMove() 
 	{
+		try {
+			sleep(100); //Stall
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		//First, we can start by sending some fleets
 		//I'll test if any friendly planet has over 20 ships, and if it does, I'll send 2 out to another planet.
-		for (PlanetInfo planet : getMyPlanetInfo())
+		for (PlanetInfo planetInfo: getMyPlanetInfo())
 		{
 			//If the planet has more than 20 ships...
-			if (planet.getNumUnits() > 20)
+			if (planetInfo.getNumUnits() > 20)
 			{
 				//I'll find a random neutral/enemy planet for it to go to
-				ArrayList<PlanetInfo> allOtherPlanets = getEnemyPlanetInfo();	//Add Enemy Planets
-				allOtherPlanets.addAll(getNeutralPlanetInfo());					//Add Neutral Planets to ArrayList
+				Set<PlanetInfo> notMyPlanets = getEnemyPlanetInfo();
+				notMyPlanets.addAll(getNeutralPlanetInfo());	//Enemy planets and neutral planets
 				
-				if(allOtherPlanets.size() != 0)
-				{
-					//Now time to find a planet to send it to
-					PlanetInfo sendTo = allOtherPlanets.get((int)(Math.random() * allOtherPlanets.size()));
-					
-					//And then send 2 ships there
-					sendFleet(planet, 2, sendTo);
-				}
+				sendFleet(planetInfo, 2, getRandomPlanetInfo(notMyPlanets));
+//				System.out.println(getName() + " made a move!");
+//				sendFleet(planetInfo, -1000, getRandomPlanetInfo(notMyPlanets));
 			}
-			sendFleet(planet, -1000, null); //Cheats!
 		}
 		
 		//We can change the direction of ships as well
 		//We'll only do this about 1/100th of the time
-		if (Math.random() < .01 && getMyFleetInfo().size() != 0 &&
-				getEnemyPlanetInfo().size() != 0 && getMyPlanetInfo().size() != 0)
+//		if (Math.random() < .01 && getMyFleetInfo().size() != 0 &&
+//				getEnemyPlanetInfo().size() != 0 && getMyPlanetInfo().size() != 0)
+//		{
+//			//First, I'll find a random fleet by getting all my fleets and picking a random one
+//			FleetInfo myFleet = getRandomFleetInfo(getMyFleetInfo());
+//			
+//			//And now we can change the direction to a random planet
+//			Set<PlanetInfo> allOtherPlanets = getEnemyPlanetInfo();
+//			allOtherPlanets.addAll(getNeutralPlanetInfo()); //Enemy planets and neutral planets
+//
+//			PlanetInfo sendTo = getRandomPlanetInfo(allOtherPlanets);
+//			
+//			//This is the line that changes the target
+//			changeFleetTarget(myFleet, sendTo);
+//		}
+	}
+	
+	//The one downside to using HashSets: no random access
+	//Just some convenience function to replace the functionality of ArrayList
+	//Note: it's OK if planetInfos is null
+	private static PlanetInfo getRandomPlanetInfo(Set<PlanetInfo> planetInfos)
+	{
+		int n = (int) (Math.random() * planetInfos.size());
+		int i = 0;
+		for (PlanetInfo pi: planetInfos)
 		{
-			//First, I'll find a random fleet by getting all my fleets and picking a random one
-			ArrayList<FleetInfo> myFleets = getMyFleetInfo();
-			FleetInfo myFleet = myFleets.get((int)(Math.random() * myFleets.size()));
-			
-			//And now we can change the direction to a random planet
-			ArrayList<PlanetInfo> allOtherPlanets = getEnemyPlanetInfo();
-			allOtherPlanets.addAll(getNeutralPlanetInfo());
-			PlanetInfo sendTo = allOtherPlanets.get((int)(Math.random() * allOtherPlanets.size()));
-			
-			//This is the line that changes the target
-			changeFleetTarget(myFleet, sendTo);
+			if (i == n)
+			{
+				return pi;
+			}
+			i++;
 		}
+		return null;
+	}
+	private static FleetInfo getRandomFleetInfo(Set<FleetInfo> fleetInfos)
+	{
+		int n = (int) (Math.random() * fleetInfos.size());
+		int i = 0;
+		for (FleetInfo fi: fleetInfos)
+		{
+			if (i == n)
+			{
+				return fi;
+			}
+			i++;
+		}
+		return null;
 	}
 
 }

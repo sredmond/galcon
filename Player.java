@@ -1,6 +1,7 @@
 //3/13/14
 import java.awt.Color;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Set;
 
 /*
@@ -12,10 +13,19 @@ public abstract class Player extends Thread
 	public abstract void makeMove(); //The AI's main brain
 	public abstract String getPlayerName(); //Get the AI's name
 	
+	public static Game currentGame;
+	
+	public void run()
+	{
+		while (true)
+		{
+			makeMove();
+		}
+	}
 	public Set<PlanetInfo> getAllPlanetInfo()
 	{
 		Set<PlanetInfo> info = new HashSet<PlanetInfo>();
-		for (Planet p: Game.getAllPlanets())
+		for (Planet p: currentGame.getAllPlanets())
 		{
 			info.add(p.getPlanetInfo());
 		}
@@ -25,7 +35,7 @@ public abstract class Player extends Thread
 	public Set<FleetInfo> getAllFleetInfo()
 	{
 		Set<FleetInfo> info = new HashSet<FleetInfo>();
-		for(Fleet f: Game.getAllFleets())
+		for(Fleet f: currentGame.getAllFleets())
 		{
 			info.add(f.getFleetInfo());
 		}
@@ -35,7 +45,7 @@ public abstract class Player extends Thread
 	public Set<PlanetInfo> getEnemyPlanetInfo()
 	{
 		Set<PlanetInfo> enemyInfo = new HashSet<PlanetInfo>();
-		for (Planet p: Game.getAllPlanets())
+		for (Planet p: currentGame.getAllPlanets())
 		{
 			if (p.getOwner() != null && p.getOwner() != this)
 			{
@@ -48,7 +58,7 @@ public abstract class Player extends Thread
 	public Set<FleetInfo> getEnemyFleetInfo()
 	{
 		Set<FleetInfo> enemyFleets = new HashSet<FleetInfo>();
-		for (Fleet f: Game.getAllFleets())
+		for(Fleet f: currentGame.getAllFleets())
 		{
 			if (f.getOwner() != this)
 			{
@@ -61,7 +71,7 @@ public abstract class Player extends Thread
 	public Set<PlanetInfo> getMyPlanetInfo()
 	{
 		Set<PlanetInfo> myInfo = new HashSet<PlanetInfo>();
-		for (Planet p: Game.getAllPlanets())
+		for (Planet p: currentGame.getAllPlanets())
 		{
 			if (p.getOwner() == this)
 			{
@@ -74,7 +84,7 @@ public abstract class Player extends Thread
 	public Set<FleetInfo> getMyFleetInfo()
 	{
 		Set<FleetInfo> myFleets = new HashSet<FleetInfo>();
-		for (Fleet f : Game.getAllFleets())
+		for(Fleet f: currentGame.getAllFleets())
 		{
 			if (f.getOwner() == this)
 			{
@@ -87,7 +97,7 @@ public abstract class Player extends Thread
 	public Set<PlanetInfo> getNeutralPlanetInfo()
 	{
 		Set<PlanetInfo> myInfo = new HashSet<PlanetInfo>();
-		for (Planet p: Game.getAllPlanets())
+		for (Planet p: currentGame.getAllPlanets())
 		{
 			if (p.getOwner() == null)
 			{
@@ -98,22 +108,37 @@ public abstract class Player extends Thread
 	}
 	
 	//Convenience functions to send fleets or change fleet target based on info
-	public void sendFleet(PlanetInfo origin, int numUnits, PlanetInfo target)
+	public void sendFleet(PlanetInfo originInfo, int numUnits, PlanetInfo targetInfo)
 	{
-		if (origin.getOwner() == this)
-			getPlanetFromInfo(origin).sendFleet(numUnits, getPlanetFromInfo(target));
+		Planet origin = getPlanetFromInfo(originInfo);
+		Planet target = getPlanetFromInfo(targetInfo);
+		if (origin != null && target != null)
+		{
+			if (origin.getOwner() == this)
+			{
+//				System.out.println("Sending fleet from " + origin + " to " + target);
+				origin.sendFleet(numUnits, target);
+			}
+		}
 	}
 	
-	public void changeFleetTarget(FleetInfo f, PlanetInfo target)
+	public void changeFleetTarget(FleetInfo fi, PlanetInfo targetInfo)
 	{
-		if (f.getOwner() == this)
-			getFleetFromInfo(f).setDestination(getPlanetFromInfo(target));
+		if (fi.getOwner() == this)
+		{
+			Fleet f = getFleetFromInfo(fi);
+			Planet p = getPlanetFromInfo(targetInfo);
+			if (f != null && p != null)
+			{
+				f.setDestination(p);
+			}
+		}
 	}
 	
 	//Subclasses can't use these
 	private Planet getPlanetFromInfo(PlanetInfo pInfo)
 	{
-		for (Planet p: Game.getAllPlanets())
+		for (Planet p: currentGame.getAllPlanets())
 		{
 			if (p.getPlanetInfo().equals(pInfo))
 			{
@@ -125,7 +150,7 @@ public abstract class Player extends Thread
 	
 	private Fleet getFleetFromInfo(FleetInfo fInfo)
 	{
-		for (Fleet f: Game.getAllFleets())
+		for (Fleet f: currentGame.getAllFleets())
 		{
 			if (f.getFleetInfo().equals(fInfo))
 			{
@@ -133,5 +158,11 @@ public abstract class Player extends Thread
 			}
 		}
 		return null;
+	}
+	
+	//A string representation of a player
+	public String toString()
+	{
+		return "Player [name=" + getPlayerName() + "]";
 	}
 }

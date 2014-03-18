@@ -20,7 +20,7 @@ Players start with 1 large "home planet" and send off ships to conquer other pla
 * PC/Mac: http://www.galcon.com/flash/
 * iPhone/iPad: Search 'Galcon' in the App Store
 
-##Usable Methods:
+##Usable Methods
 ###Player Class
 * ArrayList<PlanetInfo> getAllPlanetInfo()
 * ArrayList<FleetInfo>getAllFleetInfo()
